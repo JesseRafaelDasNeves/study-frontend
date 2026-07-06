@@ -1,0 +1,216 @@
+<p-toast></p-toast>
+
+<div class="mx-auto px-4 lg:px-8 py-6 max-w-none">
+  <!-- Breadcrumbs -->
+  <nav class="flex items-center gap-2 mb-6 text-sm text-[#505f76]">
+    <a class="hover:text-[#004ac6] transition-colors" routerLink="/course">Disciplinas</a>
+    <span class="text-[#c3c6d7]">&nbsp;/&nbsp;</span>
+    @if (course()) {
+      <a class="hover:text-[#004ac6] transition-colors" [routerLink]="['/course', courseId(), 'lesson']">
+        {{ course()?.name }}
+      </a>
+      <span class="text-[#c3c6d7]">&nbsp;/&nbsp;</span>
+    }
+    <span class="text-[#191c1e] font-bold">{{ lesson()?.title || 'Aula' }}</span>
+  </nav>
+
+  <!-- Class Header -->
+  <div class="mb-8">
+    <h2 class="text-3xl lg:text-4xl font-bold text-[#191c1e] mb-3 leading-tight tracking-tight">
+      {{ lesson()?.title }}
+    </h2>
+    <div class="flex items-center gap-4 text-[#434655] text-sm">
+      @if (course()) {
+        <span class="bg-[#d0e1fb] text-[#0b1c30] px-3 py-1 rounded-sm font-semibold text-xs uppercase">
+          {{ course()?.acronym }}
+        </span>
+      }
+      <span class="flex items-center gap-1.5 text-xs text-[#737686]">
+        <i class="pi pi-calendar"></i> 
+        {{ formatDate(lesson()?.date) }}
+      </span>
+    </div>
+  </div>
+
+  <!-- Loader -->
+  @if (loading() && !isEditing()) {
+    <div class="flex justify-center items-center py-12">
+      <i class="pi pi-spin pi-spinner text-3xl text-[#004ac6]"></i>
+    </div>
+  } @else {
+    <!-- Condicional com Resumo vs Sem Resumo vs Modo Edição -->
+    @if (isEditing()) {
+      <!-- MODO: FORMULÁRIO DE CADASTRO/EDIÇÃO MANUAL DE RESUMO -->
+      <div class="bg-white rounded-xl shadow-[0px_1px_3px_rgba(0,0,0,0.05),0px_10px_15px_-3px_rgba(0,0,0,0.08)] p-6 lg:p-8 border border-[#c3c6d7]/30">
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="text-2xl font-bold text-[#004ac6] m-0">Escrever Resumo Manualmente</h3>
+          
+          <div class="flex gap-3">
+            <p-button 
+              label="Cancelar" 
+              [text]="true" 
+              [plain]="true"
+              (onClick)="cancelEdition()"
+              styleClass="px-4 py-2 text-[#505f76] hover:bg-[#eceef0] rounded-lg transition-colors">
+            </p-button>
+            <p-button 
+              label="Salvar" 
+              icon="pi pi-check"
+              [loading]="loading()"
+              (onClick)="saveSummary()"
+              styleClass="px-4 py-2 bg-[#004ac6] hover:bg-[#2563eb] text-white rounded-lg transition-colors">
+            </p-button>
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-6">
+          <!-- Campo Memo (TextArea) -->
+          <div class="flex flex-col gap-2">
+            <label for="summaryContent" class="text-sm font-semibold text-[#434655]">Conteúdo do Resumo</label>
+            <textarea 
+              id="summaryContent" 
+              pInputTextarea 
+              [autoResize]="true" 
+              rows="12" 
+              [ngModel]="summaryText()"
+              (ngModelChange)="summaryText.set($event)"
+              placeholder="Digite o resumo da aula aqui..." 
+              class="w-full p-4 border border-[#c3c6d7] rounded-lg focus:border-[#004ac6] focus:ring-1 focus:ring-[#004ac6] outline-none transition-all text-[#191c1e] text-base leading-relaxed">
+            </textarea>
+          </div>
+
+          <!-- Campo de Tags (Chips) -->
+          <div class="flex flex-col gap-2">
+            <label for="summaryTags" class="text-sm font-semibold text-[#434655]">Tags (pressione Enter para adicionar)</label>
+            <p-chips 
+              id="summaryTags" 
+              [ngModel]="selectedTags()"
+              (ngModelChange)="selectedTags.set($event)"
+              placeholder="Ex: JPA, Spring Boot, Angular"
+              styleClass="w-full"
+              inputStyleClass="w-full p-2 border border-[#c3c6d7] rounded-lg outline-none focus:border-[#004ac6] transition-all"
+              class="w-full">
+            </p-chips>
+          </div>
+        </div>
+      </div>
+    } @else if (summary()) {
+      <!-- MODO: COM RESUMO -->
+      <div class="bg-white rounded-xl shadow-[0px_1px_3px_rgba(0,0,0,0.05),0px_10px_15px_-3px_rgba(0,0,0,0.08)] p-6 lg:p-8 border border-[#c3c6d7]/30">
+        <article class="prose max-w-none prose-slate">
+          <!-- Header do Resumo -->
+          <div class="flex justify-between items-center mb-6">
+            <h3 class="text-2xl font-bold text-[#004ac6] m-0">Resumo da Aula</h3>
+            
+            <div class="flex gap-2">
+              <p-button 
+                icon="pi pi-pencil" 
+                [text]="true" 
+                [plain]="true" 
+                (onClick)="startManualEdition()"
+                styleClass="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors flex items-center justify-center" 
+                aria-label="Editar resumo"
+                pTooltip="Editar resumo">
+              </p-button>
+              
+              <p-button 
+                icon="pi pi-trash" 
+                [text]="true" 
+                [plain]="true" 
+                (onClick)="deleteSummary()"
+                styleClass="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors flex items-center justify-center" 
+                aria-label="Excluir resumo"
+                pTooltip="Excluir resumo">
+              </p-button>
+            </div>
+          </div>
+
+          <!-- Tags do Resumo -->
+          @if (summary()?.tags && summary()?.tags?.length) {
+            <div class="flex flex-wrap gap-2 mb-6">
+              @for (tag of summary()?.tags; track tag.id) {
+                <span class="bg-[#eceef0] text-[#434655] px-3 py-1 rounded-full text-xs font-semibold">
+                  {{ tag.name }}
+                </span>
+              }
+            </div>
+          }
+
+          <!-- Conteúdo Principal do Resumo -->
+          <p class="text-[#191c1e] text-lg leading-relaxed mb-6 whitespace-pre-wrap">
+            {{ summary()?.content }}
+          </p>
+
+        </article>
+
+        <!-- Footer do Resumo / Autoria -->
+        <div class="mt-8 pt-6 border-t border-[#c3c6d7] flex items-center justify-between">
+          
+        </div>
+      </div>
+    } @else {
+      <!-- MODO: SEM RESUMO (EMPTY STATE) -->
+      <section class="bg-white rounded-xl shadow-sm p-6 lg:p-12 border border-[#c3c6d7]/30 flex flex-col items-center text-center">
+        <div class="max-w-2xl mb-8">
+          <div class="w-16 h-16 bg-[#eceef0] rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="pi pi-file-edit text-[#004ac6] text-2xl"></i>
+          </div>
+          <h3 class="text-2xl font-bold text-[#191c1e] mb-2">Ainda não há um resumo</h3>
+          <p class="text-sm text-[#434655]">
+            Você ainda não cadastrou um resumo para esta aula. Use ferramentas inteligentes ou crie do seu jeito.
+          </p>
+        </div>
+
+        <!-- Três Modos de Criação de Resumo -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
+          <!-- Manual Mode -->
+          <div class="group flex flex-col p-6 border border-[#c3c6d7] rounded-xl hover:border-[#004ac6] hover:shadow-md transition-all text-left">
+            <div class="w-10 h-10 bg-[#d0e1fb]/30 text-[#0b1c30] flex items-center justify-center rounded-lg mb-4">
+              <i class="pi pi-pencil text-[#004ac6] text-lg"></i>
+            </div>
+            <h4 class="text-lg font-bold text-[#191c1e] mb-2">Escrever manualmente</h4>
+            <p class="text-sm text-[#434655] flex-1 mb-6">
+              Inicie um documento em branco e organize suas ideias com total liberdade criativa.
+            </p>
+            <a (click)="startManualEdition()" class="text-[#004ac6] font-bold text-sm flex items-center gap-1 hover:gap-2 transition-all cursor-pointer">
+              Começar <i class="pi pi-chevron-right text-xs"></i>
+            </a>
+          </div>
+
+          <!-- File Mode -->
+          <div class="group flex flex-col p-6 border border-[#c3c6d7] rounded-xl hover:border-[#004ac6] hover:shadow-md transition-all text-left">
+            <div class="w-10 h-10 bg-[#d0e1fb]/30 text-[#0b1c30] flex items-center justify-center rounded-lg mb-4">
+              <i class="pi pi-upload text-[#004ac6] text-lg"></i>
+            </div>
+            <h4 class="text-lg font-bold text-[#191c1e] mb-2">Gerar de um arquivo</h4>
+            <p class="text-sm text-[#434655] flex-1 mb-6">
+              Importe PDFs ou documentos e deixe nossa inteligência extrair os pontos principais.
+            </p>
+            <a class="text-[#004ac6] font-bold text-sm flex items-center gap-1 hover:gap-2 transition-all cursor-pointer">
+              Fazer upload <i class="pi pi-chevron-right text-xs"></i>
+            </a>
+          </div>
+
+          <!-- AI Topic Mode (Featured - Destacado) -->
+          <div class="group flex flex-col p-6 bg-[#004ac6] text-white rounded-xl shadow-lg hover:translate-y-[-4px] transition-all text-left relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-2">
+              <span class="bg-white/20 backdrop-blur-sm text-[9px] uppercase tracking-widest font-bold px-2 py-0.5 rounded text-white border border-white/30">
+                RECOMENDADO
+              </span>
+            </div>
+            <div class="w-10 h-10 bg-white/20 flex items-center justify-center rounded-lg mb-4">
+              <i class="pi pi-sparkles text-white text-lg animate-pulse"></i>
+            </div>
+            <h4 class="text-lg font-bold mb-2 text-white">Gerar por tópico</h4>
+            <p class="text-sm opacity-90 flex-1 mb-6">
+              Defina um tema e receba um resumo estruturado e referenciado automaticamente pela IA.
+            </p>
+            <a class="text-white font-bold text-sm flex items-center gap-1 group-hover:gap-2 transition-all cursor-pointer">
+              Gerar agora <i class="pi pi-chevron-right text-xs"></i>
+            </a>
+          </div>
+        </div>
+      </section>
+    }
+  }
+</div>

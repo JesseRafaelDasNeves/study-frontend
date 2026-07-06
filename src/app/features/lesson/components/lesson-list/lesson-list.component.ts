@@ -272,4 +272,14 @@ export class LessonListComponent implements OnInit {
   backToCourses() {
     this.router.navigate(['/course']);
   }
+
+  goToDetail(lesson: Lesson, event?: Event) {
+    if (event) {
+      event.stopPropagation();
+    }
+    if (lesson.id) {
+      this.router.navigate(['/course', this.courseId(), 'lesson', lesson.id, 'detail']);
+    }
+  }
 }
+

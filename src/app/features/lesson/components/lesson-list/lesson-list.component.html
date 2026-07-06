@@ -64,7 +64,9 @@
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         @for (lesson of lessons(); track lesson.id; let idx = $index) {
           <!-- Card de Aula -->
-          <p-card styleClass="h-full flex flex-col group relative border border-[#c3c6d7] hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden bg-white">
+          <p-card 
+            styleClass="h-full flex flex-col group relative border border-[#c3c6d7] hover:shadow-lg hover:scale-[1.02] cursor-pointer transition-all duration-300 rounded-xl overflow-hidden bg-white"
+            (click)="goToDetail(lesson)">
             <div class="flex flex-col h-full justify-between min-h-[200px]">
               
               <!-- Header do Card de Aula -->
@@ -122,9 +124,11 @@
                     pTooltip="Excluir aula">
                   </p-button>
                   
-                  <button class="text-[#004ac6] font-bold text-sm flex items-center gap-1 hover:underline ml-2">
-                    {{ lesson.hasSummary ? 'Abrir' : 'Adicionar' }} 
-                    <i class="pi" [ngClass]="lesson.hasSummary ? 'pi-arrow-right' : 'pi-plus'"></i>
+                  <button 
+                    class="text-[#004ac6] font-bold text-sm flex items-center gap-1 hover:underline ml-2"
+                    (click)="goToDetail(lesson, $event)">
+                    Resumo
+                    <i class="pi pi-arrow-right text-xs"></i>
                   </button>
                 </div>
               </div>
