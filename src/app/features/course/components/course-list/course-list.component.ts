@@ -13,6 +13,7 @@ import { TagModule } from 'primeng/tag';
 import { InputTextModule } from 'primeng/inputtext';
 import { TextareaModule } from 'primeng/textarea';
 import { ConfirmationService, MessageService, MenuItem } from 'primeng/api';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-course-list',
@@ -74,17 +75,34 @@ export class CourseListComponent implements OnInit {
         }
       },
     },
+    {
+      label: 'Aulas',
+      icon: 'pi pi-calendar',
+      command: () => {
+        if (this.activeCourse) {
+          this.navigateToLessons(this.activeCourse);
+        }
+      },
+    },
   ];
 
   constructor(
     private readonly courseService: CourseService,
     private readonly confirmationService: ConfirmationService,
     private readonly messageService: MessageService,
+    private readonly router: Router,
   ) {}
 
   ngOnInit() {
     this.loadCourses();
   }
+
+  navigateToLessons(course: Course) {
+    if (course.id) {
+      this.router.navigate(['/course', course.id, 'lesson']);
+    }
+  }
+
 
   async loadCourses() {
     this.loading.set(true);
