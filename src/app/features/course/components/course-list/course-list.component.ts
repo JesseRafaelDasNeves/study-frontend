@@ -33,9 +33,6 @@ import { ConfirmationService, MessageService, MenuItem } from 'primeng/api';
   templateUrl: './course-list.component.html',
 })
 export class CourseListComponent implements OnInit {
-  private courseService = inject(CourseService);
-  private confirmationService = inject(ConfirmationService);
-  private messageService = inject(MessageService);
 
   courses = signal<Course[]>([]);
   loading = signal(false);
@@ -78,6 +75,12 @@ export class CourseListComponent implements OnInit {
       },
     },
   ];
+
+  constructor(
+    private readonly courseService: CourseService,
+    private readonly confirmationService: ConfirmationService,
+    private readonly messageService: MessageService,
+  ) {}
 
   ngOnInit() {
     this.loadCourses();
