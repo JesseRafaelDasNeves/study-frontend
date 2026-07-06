@@ -101,12 +101,12 @@ export class LessonListComponent implements OnInit {
     this.lessonService.getAll().subscribe({
       next: (data) => {
         // Filtra as aulas do backend para exibir apenas as pertencentes a este curso
-        const filtered = data.filter((l) => l.courseId === this.courseId());
+        const filtered = data.filter((l) => l.course?.id === this.courseId() || l.courseId === this.courseId());
         // Ordena por data
         filtered.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-        // Mapeia para UI (verifica localmente se possui resumo ou simula status)
+        // Mapeia para UI utilizando o campo hasSummary real retornado pelo backend
         filtered.forEach((l) => {
-          l.hasSummary = l.hasSummary ?? (Math.random() > 0.4); // Simula resumos salvos se não houver campo específico
+          l.hasSummary = l.hasSummary ?? false;
         });
         this.lessons.set(filtered);
         this.loading.set(false);
