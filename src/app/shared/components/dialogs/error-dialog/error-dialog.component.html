@@ -1,0 +1,25 @@
+<div class="error-dialog mt-5">
+  <div class="error-dialog__header">
+    <div class="flex align-items-center gap-2">
+      <i
+        class="pi pi-exclamation-circle text-red-500"
+        style="font-size: 1.5rem"
+      ></i>
+      <span class="font-bold text-xl">Erro</span>
+    </div>
+    <button
+      pButton
+      icon="pi pi-times"
+      class="p-button-text p-button-rounded p-button-plain"
+      (click)="closeDialog()"
+    ></button>
+  </div>
+  <div class="flex flex-col gap-6 p-5">
+    <div>
+      <span>{{ data()?.message }}</span>
+    </div>
+    <pre *ngIf="!!data()?.trace">
+      <code>{{ data()?.trace }}</code>
+    </pre>
+  </div>
+</div>

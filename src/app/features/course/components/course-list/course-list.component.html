@@ -1,0 +1,177 @@
+<p-toast></p-toast>
+<p-confirmDialog></p-confirmDialog>
+
+<!-- Componente de Menu flutuante para ações nos cards -->
+<p-menu #menu [model]="menuItems" [popup]="true"></p-menu>
+
+<main class="flex-1 pb-24 lg:pb-8 bg-[#f7f9fb] min-h-screen text-[#191c1e]">
+  <!-- Seção de Cabeçalho -->
+  <div class="max-w-[1280px] mx-auto px-6 pt-8 mb-8">
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+      <div>
+        <nav class="flex items-center gap-1 mb-2 text-sm text-[#434655]">
+          <span>Portal</span>
+          <i class="pi pi-chevron-right text-xs text-[#737686]"></i>
+          <span class="font-bold text-[#191c1e]">Disciplinas</span>
+        </nav>
+        <h2 class="text-3xl md:text-4xl font-bold text-[#004ac6] tracking-tight">Minhas Disciplinas</h2>
+        <p class="text-[#434655] mt-2">Gerencie seus estudos e organize suas aulas por categoria acadêmica.</p>
+      </div>
+      <p-button 
+        label="Nova Disciplina" 
+        icon="pi pi-plus" 
+        severity="primary" 
+        (onClick)="openNewCourseDialog()"
+        styleClass="shadow-md">
+      </p-button>
+    </div>
+  </div>
+
+  <!-- Bento Grid de Cards -->
+  <div class="max-w-[1280px] mx-auto px-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+      
+      <!-- Card da Disciplina -->
+      @for (course of courses(); track course.id) {
+        <p-card styleClass="h-full flex flex-col group relative border border-[#c3c6d7] hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden bg-white">
+          <div class="flex flex-col h-full justify-between min-h-[160px]">
+            <!-- Header do Card -->
+            <div class="flex justify-between items-start mb-4">
+              <p-tag 
+                [value]="course.acronym" 
+                [style]="{ 
+                  'background-color': course.color + '15', 
+                  'color': course.color, 
+                  'border': '1px solid ' + course.color + '30',
+                  'font-weight': '600',
+                  'text-transform': 'uppercase',
+                  'padding': '4px 8px'
+                }">
+              </p-tag>
+              <p-button 
+                icon="pi pi-ellipsis-v" 
+                [text]="true" 
+                [plain]="true" 
+                (onClick)="activeCourse = course; menu.toggle($event)"
+                styleClass="p-0 text-[#737686] hover:text-[#004ac6] transition-colors">
+              </p-button>
+            </div>
+
+            <!-- Conteúdo -->
+            <div class="mb-6">
+              <h3 class="text-xl font-bold text-[#191c1e] mb-2">{{ course.name }}</h3>
+              <p class="text-sm text-[#434655] line-clamp-2">{{ course.description || 'Sem descrição.' }}</p>
+            </div>
+
+            <!-- Footer do Card -->
+            <div class="mt-auto pt-4 border-t border-[#e0e3e5] flex items-center justify-between text-[#434655]">
+              <div class="flex items-center gap-1">
+                <i class="pi pi-book text-base"></i>
+                <span class="text-sm">0 aulas</span>
+              </div>
+            </div>
+          </div>
+        </p-card>
+      }
+
+      <!-- Card Vazio de Adição / Sugestão -->
+      <div 
+        (click)="openNewCourseDialog()"
+        class="group flex flex-col items-center justify-center p-6 rounded-xl border-2 border-dashed border-[#c3c6d7] bg-[#f2f4f6] hover:bg-[#eceef0] transition-colors cursor-pointer text-center min-h-[220px]">
+        <div class="w-12 h-12 rounded-full bg-[#e0e3e5] flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+          <i class="pi pi-plus text-lg text-[#737686]"></i>
+        </div>
+        <h3 class="text-lg font-semibold text-[#434655]">Adicionar Disciplina</h3>
+        <p class="text-sm text-[#737686] mt-1">Comece a organizar seu semestre</p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Dialog de Criação/Edição -->
+  <p-dialog 
+    [visible]="dialogVisible()" 
+    (visibleChange)="dialogVisible.set($event)"
+    [header]="isEditMode() ? 'Editar Disciplina' : 'Nova Disciplina'" 
+    [modal]="true" 
+    [style]="{ width: '450px' }"
+    [draggable]="false"
+    [resizable]="false"
+    styleClass="p-fluid">
+    
+    <ng-template pTemplate="content">
+      <div class="flex flex-col gap-4 mt-2">
+        <!-- Campo Nome -->
+        <div class="flex flex-col gap-2">
+          <label for="name" class="font-semibold text-sm text-[#191c1e]">Nome da Disciplina *</label>
+          <input 
+            pInputText 
+            id="name" 
+            [(ngModel)]="courseForm.name" 
+            placeholder="Ex: Cálculo Diferencial I" 
+            [maxlength]="50"
+            required 
+            class="w-full" />
+        </div>
+
+        <!-- Campo Sigla -->
+        <div class="flex flex-col gap-2">
+          <label for="acronym" class="font-semibold text-sm text-[#191c1e]">Sigla (3 a 4 caracteres) *</label>
+          <input 
+            pInputText 
+            id="acronym" 
+            [(ngModel)]="courseForm.acronym" 
+            placeholder="Ex: MAT" 
+            maxlength="4"
+            required 
+            class="w-full" />
+        </div>
+
+        <!-- Campo Cor -->
+        <div class="flex flex-col gap-2">
+          <label for="color" class="font-semibold text-sm text-[#191c1e]">Cor da Categoria *</label>
+          <div class="flex gap-2 items-center">
+            <input 
+              type="color" 
+              [(ngModel)]="courseForm.color" 
+              class="w-12 h-10 border border-[#c3c6d7] rounded p-1 cursor-pointer" />
+            <input 
+              pInputText 
+              id="color" 
+              [(ngModel)]="courseForm.color" 
+              placeholder="#000000" 
+              class="flex-1" />
+          </div>
+        </div>
+
+        <!-- Campo Descrição -->
+        <div class="flex flex-col gap-2">
+          <label for="description" class="font-semibold text-sm text-[#191c1e]">Descrição (Opcional)</label>
+          <textarea 
+            pTextarea 
+            id="description" 
+            [(ngModel)]="courseForm.description" 
+            rows="3" 
+            placeholder="Breve descrição sobre a disciplina..." 
+            class="w-full"></textarea>
+        </div>
+      </div>
+    </ng-template>
+
+    <ng-template pTemplate="footer">
+      <div class="flex justify-end gap-2 pt-2">
+        <p-button 
+          label="Cancelar" 
+          [text]="true" 
+          severity="secondary" 
+          (onClick)="dialogVisible.set(false)">
+        </p-button>
+        <p-button 
+          label="Salvar" 
+          severity="primary" 
+          (onClick)="saveCourse()">
+        </p-button>
+      </div>
+    </ng-template>
+  </p-dialog>
+</main>
