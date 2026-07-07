@@ -67,3 +67,28 @@ Rode o servidor de desenvolvimento:
 pnpm start:dev
 ```
 O frontend estará acessível em http://localhost:4200.
+
+---
+
+## 🧪 Testes
+
+### Testes Existentes
+A aplicação frontend em Angular conta com testes unitários configurados e isolados (totalizando **21 testes unitários**), cobrindo:
+
+- **Componentes Globais e Estrutura**:
+  - `app.component.spec.ts`: Valida a integridade do bootstrap da aplicação e títulos.
+  - Componentes do diretório `layout` (`topbar`, `sidebar`, `menu`, `menu-item`, `settings`, `floating-settings`, `main-layout`, `user-profile`): Testados individualmente com isolamento de animações, roteamento e stubs como o `MockLayoutService`.
+- **Shared / Diálogos**:
+  - `error-dialog.component.spec.ts`: Valida o diálogo dinâmico de erros do PrimeNG integrado a mocks de `DynamicDialogRef` e `DynamicDialogConfig`.
+- **Funcionalidades de Negócio (Features) e Serviços**:
+  - `summary-search.component.spec.ts`: Testes do painel de busca e exibição de resumos (incluindo debounce de busca, ordenação de relevância dinâmica e reset de páginas).
+  - `summary.service.spec.ts`: Testes do serviço de resumos responsável pelo envio dos parâmetros e integração HTTP.
+  - `login.component.spec.ts`: Valida o fluxo e renderização da tela de autenticação integrada com mocks do `AuthService` e `Router`.
+  - `dashboard.component.spec.ts`: Teste unitário da estrutura inicial do painel de controle do estudante.
+
+### Como Executar os Testes
+Para rodar a suíte completa de testes unitários no frontend de forma isolada e headless:
+
+```bash
+pnpm test -- --watch=false --browsers=ChromeHeadless
+```
