@@ -1,4 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
+import { provideNoopAnimations } from '@angular/platform-browser/animations';
+import { PrimeNG } from 'primeng/config';
+import { LayoutService } from '../../services/layout.service';
+import { MockLayoutService } from '../../services/layout.service.mock';
 
 import { MainLayoutComponent } from './main-layout.component';
 
@@ -8,7 +13,13 @@ describe('AppLayoutComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [MainLayoutComponent]
+      imports: [MainLayoutComponent],
+      providers: [
+        provideRouter([]),
+        provideNoopAnimations(),
+        PrimeNG,
+        { provide: LayoutService, useClass: MockLayoutService }
+      ]
     })
     .compileComponents();
 

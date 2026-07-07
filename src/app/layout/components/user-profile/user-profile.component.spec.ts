@@ -2,6 +2,8 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { UserProfileComponent } from './user-profile.component';
 import { FormBuilder } from '@angular/forms';
+import { provideRouter } from '@angular/router';
+import { provideNoopAnimations } from '@angular/platform-browser/animations';
 
 describe('UserProfileComponent', () => {
   let component: UserProfileComponent;
@@ -10,7 +12,11 @@ describe('UserProfileComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [HttpClientTestingModule, UserProfileComponent],
-      providers: [FormBuilder]
+      providers: [
+        FormBuilder,
+        provideRouter([]),
+        provideNoopAnimations()
+      ]
     })
     .compileComponents();
 

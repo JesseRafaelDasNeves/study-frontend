@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
 
 import { ErrorDialogComponent } from './error-dialog.component';
 
@@ -8,7 +9,11 @@ describe('ErrorDialogComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ErrorDialogComponent]
+      imports: [ErrorDialogComponent],
+      providers: [
+        { provide: DynamicDialogRef, useValue: { close: () => {} } },
+        { provide: DynamicDialogConfig, useValue: { data: {} } }
+      ]
     })
     .compileComponents();
 

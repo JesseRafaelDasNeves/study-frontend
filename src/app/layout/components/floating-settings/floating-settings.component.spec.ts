@@ -1,4 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideNoopAnimations } from '@angular/platform-browser/animations';
+import { PrimeNG } from 'primeng/config';
+import { provideRouter } from '@angular/router';
+import { LayoutService } from '../../services/layout.service';
+import { MockLayoutService } from '../../services/layout.service.mock';
 
 import { FloatingSettingsComponent } from './floating-settings.component';
 
@@ -8,7 +13,13 @@ describe('FloatingSettingsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [FloatingSettingsComponent]
+      imports: [FloatingSettingsComponent],
+      providers: [
+        provideRouter([]),
+        provideNoopAnimations(),
+        PrimeNG,
+        { provide: LayoutService, useClass: MockLayoutService }
+      ]
     })
     .compileComponents();
 
