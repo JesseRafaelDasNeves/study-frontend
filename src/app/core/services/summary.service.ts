@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Summary } from '@interfaces/summary.interface';
+import { Summary, ExtractedTextResponse, GeneratedSummaryResponse } from '@interfaces/summary.interface';
 import { environment } from '@environments/environment';
 
 @Injectable({
@@ -31,4 +31,21 @@ export class SummaryService {
   delete(id: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
+
+  extractTextFromFile(file: File): Observable<ExtractedTextResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<ExtractedTextResponse>(
+      `${environment.apiLessonUrl}files/extract-text`,
+      formData
+    );
+  }
+
+  generateSummaryFromText(text: string): Observable<GeneratedSummaryResponse> {
+    return this.http.post<GeneratedSummaryResponse>(
+      `${environment.apiLessonUrl}ai/summaries/by-text`,
+      { text }
+    );
+  }
 }
+

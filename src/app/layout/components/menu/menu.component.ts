@@ -32,7 +32,7 @@ export class MenuComponent {
         label: '',
         items: [
           { label: 'Dashboard', icon: 'pi pi-fw pi-home', routerLink: ['/'] },
-          { label: 'Cursos', icon: 'pi pi-fw pi-graduation-cap', routerLink: ['/course'] },
+          { label: 'Disciplinas', icon: 'pi pi-fw pi-graduation-cap', routerLink: ['/course'] },
         ],
       },
     ];

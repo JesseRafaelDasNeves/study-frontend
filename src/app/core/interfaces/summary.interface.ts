@@ -13,3 +13,15 @@ export interface Summary {
   createdAt?: string;
   updatedAt?: string;
 }
+export interface ExtractedTextResponse {
+  originalFileName: string;
+  contentType: string;
+  extractedText: string;
+  characterCount: number;
+}
+
+export interface GeneratedSummaryResponse {
+  suggestedTitle: string;
+  content: string;
+  suggestedTags: string[];
+}

@@ -4,7 +4,7 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Lesson } from '@interfaces/lesson.interface';
 import { Course } from '@interfaces/course.interface';
-import { Summary } from '@interfaces/summary.interface';
+import { Summary, SummarySource } from '@interfaces/summary.interface';
 import { Tag as SummaryTag } from '@interfaces/tag.interface';
 import { LessonService } from '@services/lesson.service';
 import { CourseService } from '@services/course.service';
@@ -17,6 +17,7 @@ import { ToastModule } from 'primeng/toast';
 import { TagModule } from 'primeng/tag';
 import { Chips } from 'primeng/chips';
 import { InputTextarea } from 'primeng/inputtextarea';
+import { SkeletonModule } from 'primeng/skeleton';
 import { forkJoin, Observable, of } from 'rxjs';
 
 @Component({
@@ -32,6 +33,7 @@ import { forkJoin, Observable, of } from 'rxjs';
     TagModule,
     Chips,
     InputTextarea,
+    SkeletonModule,
   ],
   providers: [MessageService],
   templateUrl: './lesson-detail.component.html',
@@ -49,6 +51,16 @@ export class LessonDetailComponent implements OnInit {
   isEditing = signal(false);
   summaryText = signal('');
   selectedTags = signal<string[]>([]);
+
+  // Novos estados para o modo de geração por arquivo
+  isGeneratingFromFile = signal(false);
+  fileName = signal('');
+  extractedText = signal('');
+  extractedWordCount = signal(0);
+  aiSummaryText = signal('');
+  extractingTextLoading = signal(false);
+  aiSummaryLoading = signal(false);
+
 
   constructor(
     private readonly route: ActivatedRoute,
@@ -140,8 +152,17 @@ export class LessonDetailComponent implements OnInit {
         // Atualizar estado da aula localmente
         const currentLesson = this.lesson();
         if (currentLesson) {
-          currentLesson.hasSummary = false;
-          this.lessonService.update(currentLesson.id!, currentLesson).subscribe();
+          this.lessonService.getById(currentLesson.id!).subscribe({
+            next: (data) => this.lesson.set(data),
+            error: (err) => {
+              console.error(err);
+              this.messageService.add({
+                severity: 'error',
+                summary: 'Erro',
+                detail: 'Não foi possível carregar a aula.',
+              });
+            },
+          });
         }
         this.messageService.add({
           severity: 'success',
@@ -189,7 +210,22 @@ export class LessonDetailComponent implements OnInit {
       });
       return;
     }
+    this.processTagsAndSave(this.summaryText(), 'MANUAL');
+  }
 
+  saveAISummary() {
+    if (!this.aiSummaryText().trim()) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Atenção',
+        detail: 'O conteúdo do resumo não pode estar vazio.',
+      });
+      return;
+    }
+    this.processTagsAndSave(this.aiSummaryText(), 'UPLOADED_FILE');
+  }
+
+  private processTagsAndSave(content: string, source: SummarySource) {
     this.loading.set(true);
 
     // 1. Obter todas as tags existentes do banco
@@ -209,11 +245,11 @@ export class LessonDetailComponent implements OnInit {
         });
 
         if (tagRequests$.length === 0) {
-          this.submitSummary([]);
+          this.submitSummary([], content, source);
         } else {
           forkJoin(tagRequests$).subscribe({
             next: (resolvedTags) => {
-              this.submitSummary(resolvedTags);
+              this.submitSummary(resolvedTags, content, source);
             },
             error: (err) => {
               console.error(err);
@@ -239,12 +275,12 @@ export class LessonDetailComponent implements OnInit {
     });
   }
 
-  private submitSummary(resolvedTags: SummaryTag[]) {
+  private submitSummary(resolvedTags: SummaryTag[], content: string, source: SummarySource) {
     const currentSummary = this.summary();
     const summaryPayload: Summary = {
       lessonId: this.lessonId(),
-      content: this.summaryText(),
-      source: 'MANUAL',
+      content: content,
+      source: source,
       tags: resolvedTags,
     };
 
@@ -282,6 +318,8 @@ export class LessonDetailComponent implements OnInit {
       detail: 'Resumo salvo com sucesso.',
     });
     this.isEditing.set(false);
+    this.isGeneratingFromFile.set(false);
+    this.discardSummary();
     this.loading.set(false);
   }
 
@@ -295,6 +333,86 @@ export class LessonDetailComponent implements OnInit {
     this.loading.set(false);
   }
 
+  // Métodos para controle do fluxo de geração por arquivo
+  startFileGeneration() {
+    this.discardSummary();
+    this.isGeneratingFromFile.set(true);
+  }
+
+  cancelFileGeneration() {
+    this.isGeneratingFromFile.set(false);
+    this.discardSummary();
+  }
+
+  onFileSelected(event: any) {
+    const file = event.target.files?.[0];
+    if (file) {
+      this.extractText(file);
+    }
+  }
+
+  extractText(file: File) {
+    this.extractingTextLoading.set(true);
+    this.fileName.set(file.name);
+    this.extractedText.set('');
+    this.extractedWordCount.set(0);
+    this.aiSummaryText.set('');
+
+    this.summaryService.extractTextFromFile(file).subscribe({
+      next: (res) => {
+        this.extractedText.set(res.extractedText);
+        // Calcular número de palavras
+        const wordCount = res.extractedText
+          ? res.extractedText.trim().split(/\s+/).filter(Boolean).length
+          : 0;
+        this.extractedWordCount.set(wordCount);
+        this.extractingTextLoading.set(false);
+
+        // Chamar geração de resumo com IA
+        this.generateAISummary(res.extractedText);
+      },
+      error: (err) => {
+        console.error(err);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Erro',
+          detail: err.error?.message || 'Não foi possível extrair o texto do arquivo.',
+        });
+        this.discardSummary();
+      },
+    });
+  }
+
+  generateAISummary(text: string) {
+    this.aiSummaryLoading.set(true);
+    this.summaryService.generateSummaryFromText(text).subscribe({
+      next: (res) => {
+        this.aiSummaryText.set(res.content);
+        this.selectedTags.set(res.suggestedTags || []);
+        this.aiSummaryLoading.set(false);
+      },
+      error: (err) => {
+        console.error(err);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Erro',
+          detail: 'Não foi possível gerar o resumo com IA.',
+        });
+        this.aiSummaryLoading.set(false);
+      },
+    });
+  }
+
+  discardSummary() {
+    this.fileName.set('');
+    this.extractedText.set('');
+    this.extractedWordCount.set(0);
+    this.aiSummaryText.set('');
+    this.selectedTags.set([]);
+    this.extractingTextLoading.set(false);
+    this.aiSummaryLoading.set(false);
+  }
+
   formatDate(dateStr?: string): string {
     if (!dateStr) return '';
     const date = new Date(dateStr);
@@ -304,4 +422,5 @@ export class LessonDetailComponent implements OnInit {
       year: 'numeric',
     });
   }
+
 }
