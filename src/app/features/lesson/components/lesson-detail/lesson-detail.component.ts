@@ -302,6 +302,7 @@ export class LessonDetailComponent implements OnInit {
       });
     } else {
       // Criar novo
+      summaryPayload.title = this.lesson()?.title;
       this.summaryService.create(summaryPayload).subscribe({
         next: (saved) => {
           this.summary.set(saved);

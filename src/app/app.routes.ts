@@ -17,6 +17,11 @@ export const routes: Routes = [
             canActivate: [AuthGuard],
             loadChildren: () => import('./features/course/course.routes'),
           },
+          {
+            path: 'summary-search',
+            canActivate: [AuthGuard],
+            loadChildren: () => import('./features/summary-search/summary-search.routes'),
+          },
         ],
       },
     ],

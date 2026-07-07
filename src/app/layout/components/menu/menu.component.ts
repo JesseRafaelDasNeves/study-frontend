@@ -33,6 +33,7 @@ export class MenuComponent {
         items: [
           { label: 'Dashboard', icon: 'pi pi-fw pi-home', routerLink: ['/'] },
           { label: 'Disciplinas', icon: 'pi pi-fw pi-graduation-cap', routerLink: ['/course'] },
+          { label: 'Busca de Resumos', icon: 'pi pi-fw pi-search', routerLink: ['/summary-search'] },
         ],
       },
     ];

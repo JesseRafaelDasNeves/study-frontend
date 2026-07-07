@@ -7,6 +7,7 @@ export interface Summary {
   id?: string;
   lessonId: string;
   lesson?: Lesson;
+  title?: string;
   content: string;
   source: SummarySource;
   tags?: Tag[];
