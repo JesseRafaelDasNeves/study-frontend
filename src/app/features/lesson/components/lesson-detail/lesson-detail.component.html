@@ -244,6 +244,123 @@
           }
         </div>
       </div>
+    } @else if (isGeneratingFromTopic()) {
+      <!-- MODO: GERAR RESUMO POR TÓPICO COM IA -->
+      <div class="bg-white rounded-xl shadow-[0px_1px_3px_rgba(0,0,0,0.05),0px_10px_15px_-3px_rgba(0,0,0,0.08)] p-6 lg:p-8 border border-[#c3c6d7]/30">
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="text-2xl font-bold text-[#004ac6] m-0">Gerar Resumo por Tópico</h3>
+          
+          <div class="flex gap-3">
+            <p-button 
+              label="Cancelar" 
+              [text]="true" 
+              [plain]="true"
+              (onClick)="cancelTopicGeneration()"
+              styleClass="px-4 py-2 text-[#505f76] hover:bg-[#eceef0] rounded-lg transition-colors">
+            </p-button>
+            <p-button 
+              label="Salvar Resumo" 
+              icon="pi pi-check"
+              [loading]="loading()"
+              [disabled]="!aiTopicSummaryText() || aiTopicLoading()"
+              (onClick)="saveTopicSummary()"
+              styleClass="px-4 py-2 bg-[#004ac6] hover:bg-[#2563eb] text-white rounded-lg transition-colors">
+            </p-button>
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-6">
+          <!-- Campo para inserir o tópico -->
+          <div class="flex flex-col gap-3 p-6 bg-[#f8fafc] border border-[#c3c6d7] rounded-xl">
+            <label for="topicInput" class="text-lg font-bold text-[#191c1e] mb-1">
+              Sobre qual tópico você quer gerar um resumo?
+            </label>
+            <div class="flex flex-col md:flex-row gap-3">
+              <input 
+                id="topicInput"
+                type="text"
+                [ngModel]="topicInput()"
+                (ngModelChange)="topicInput.set($event)"
+                placeholder="Ex: Introdução ao Angular, Ciclo de Vida do React, Bancos NoSQL..."
+                class="flex-1 p-3 border border-[#c3c6d7] rounded-lg focus:border-[#004ac6] focus:ring-1 focus:ring-[#004ac6] outline-none transition-all text-[#191c1e]"
+                (keyup.enter)="generateSummaryFromTopic()" />
+              
+              <p-button 
+                label="Gerar resumo com IA" 
+                icon="pi pi-sparkles"
+                [loading]="aiTopicLoading()"
+                [disabled]="aiTopicLoading() || !topicInput().trim()"
+                (onClick)="generateSummaryFromTopic()"
+                styleClass="px-4 py-3 bg-[#004ac6] hover:bg-[#2563eb] text-white rounded-lg transition-colors whitespace-nowrap">
+              </p-button>
+            </div>
+          </div>
+
+          <!-- Resultados da geração -->
+          @if (hasGenerated()) {
+            <div class="grid grid-cols-1 gap-6">
+              <!-- Skeletons ou campos reais -->
+              @if (aiTopicLoading()) {
+                <!-- Tags Skeleton -->
+                <section class="flex flex-col gap-2">
+                  <label class="text-sm font-semibold text-[#434655] uppercase tracking-wider">Tags</label>
+                  <div class="flex gap-2">
+                    <p-skeleton width="5rem" height="2rem" borderRadius="20px"></p-skeleton>
+                    <p-skeleton width="6rem" height="2rem" borderRadius="20px"></p-skeleton>
+                    <p-skeleton width="4rem" height="2rem" borderRadius="20px"></p-skeleton>
+                  </div>
+                </section>
+
+                <!-- Resumo Skeleton -->
+                <section class="flex flex-col gap-2">
+                  <label class="text-sm font-semibold text-[#004ac6] uppercase tracking-wider">Resumo Gerado por IA</label>
+                  <div class="bg-white border border-[#c3c6d7] rounded-xl p-4 space-y-3">
+                    <p-skeleton width="100%" height="1.2rem"></p-skeleton>
+                    <p-skeleton width="95%" height="1.2rem"></p-skeleton>
+                    <p-skeleton width="85%" height="1.2rem"></p-skeleton>
+                  </div>
+                </section>
+              } @else {
+                <!-- Tags Reais -->
+                <section class="flex flex-col gap-2">
+                  <label for="aiTopicTags" class="text-sm font-semibold text-[#434655] uppercase tracking-wider">
+                    Tags (pressione Enter para adicionar)
+                  </label>
+                  <p-chips 
+                    id="aiTopicTags" 
+                    [ngModel]="selectedTags()"
+                    (ngModelChange)="selectedTags.set($event)"
+                    placeholder="Adicione tags..."
+                    styleClass="w-full"
+                    inputStyleClass="w-full p-2 border border-[#c3c6d7] rounded-lg outline-none focus:border-[#004ac6] transition-all"
+                    class="w-full">
+                  </p-chips>
+                </section>
+
+                <!-- Resumo Real -->
+                <section class="flex flex-col gap-2">
+                  <div class="flex items-center justify-between">
+                    <label for="aiTopicSummaryContent" class="text-sm font-semibold text-[#004ac6] uppercase tracking-wider flex items-center gap-1.5">
+                      <i class="pi pi-sparkles text-xs animate-pulse"></i> Resumo Gerado por IA
+                    </label>
+                    <span class="text-xs text-[#004ac6] font-bold">Pronto</span>
+                  </div>
+                  <textarea 
+                    id="aiTopicSummaryContent" 
+                    pInputTextarea 
+                    [autoResize]="true" 
+                    rows="10" 
+                    [ngModel]="aiTopicSummaryText()"
+                    (ngModelChange)="aiTopicSummaryText.set($event)"
+                    placeholder="O resumo da IA aparecerá aqui após o processamento..." 
+                    class="w-full p-4 border border-[#c3c6d7] rounded-lg focus:border-[#004ac6] focus:ring-1 focus:ring-[#004ac6] outline-none transition-all text-[#191c1e] text-base leading-relaxed bg-[#004ac6]/5 border-[#004ac6]/20">
+                  </textarea>
+                </section>
+              }
+            </div>
+          }
+        </div>
+      </div>
     } @else if (summary()) {
       <!-- MODO: COM RESUMO -->
       <div class="bg-white rounded-xl shadow-[0px_1px_3px_rgba(0,0,0,0.05),0px_10px_15px_-3px_rgba(0,0,0,0.08)] p-6 lg:p-8 border border-[#c3c6d7]/30">
@@ -342,7 +459,7 @@
           </div>
 
           <!-- AI Topic Mode (Featured - Destacado) -->
-          <div class="group flex flex-col p-6 bg-[#004ac6] text-white rounded-xl shadow-lg hover:translate-y-[-4px] transition-all text-left relative overflow-hidden">
+          <div (click)="startTopicGeneration()" class="group flex flex-col p-6 bg-[#004ac6] text-white rounded-xl shadow-lg hover:translate-y-[-4px] transition-all text-left relative overflow-hidden cursor-pointer">
             <div class="absolute top-0 right-0 p-2">
               <span class="bg-white/20 backdrop-blur-sm text-[9px] uppercase tracking-widest font-bold px-2 py-0.5 rounded text-white border border-white/30">
                 RECOMENDADO
@@ -355,7 +472,7 @@
             <p class="text-sm opacity-90 flex-1 mb-6">
               Defina um tema e receba um resumo estruturado e referenciado automaticamente pela IA.
             </p>
-            <a class="text-white font-bold text-sm flex items-center gap-1 group-hover:gap-2 transition-all cursor-pointer">
+            <a class="text-white font-bold text-sm flex items-center gap-1 group-hover:gap-2 transition-all">
               Gerar agora <i class="pi pi-chevron-right text-xs"></i>
             </a>
           </div>

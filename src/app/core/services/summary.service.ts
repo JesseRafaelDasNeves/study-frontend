@@ -47,5 +47,12 @@ export class SummaryService {
       { text }
     );
   }
+
+  generateSummaryFromTopic(topic: string): Observable<GeneratedSummaryResponse> {
+    return this.http.post<GeneratedSummaryResponse>(
+      `${environment.apiLessonUrl}ai/summaries/by-topic`,
+      { topic }
+    );
+  }
 }
 

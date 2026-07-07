@@ -61,6 +61,13 @@ export class LessonDetailComponent implements OnInit {
   extractingTextLoading = signal(false);
   aiSummaryLoading = signal(false);
 
+  // Novos estados para o modo de geração por tópico
+  isGeneratingFromTopic = signal(false);
+  topicInput = signal('');
+  aiTopicSummaryText = signal('');
+  aiTopicLoading = signal(false);
+  hasGenerated = signal(false);
+
 
   constructor(
     private readonly route: ActivatedRoute,
@@ -319,7 +326,9 @@ export class LessonDetailComponent implements OnInit {
     });
     this.isEditing.set(false);
     this.isGeneratingFromFile.set(false);
+    this.isGeneratingFromTopic.set(false);
     this.discardSummary();
+    this.discardTopicSummary();
     this.loading.set(false);
   }
 
@@ -421,6 +430,70 @@ export class LessonDetailComponent implements OnInit {
       month: 'long',
       year: 'numeric',
     });
+  }
+
+  // Métodos para controle do fluxo de geração por tópico
+  startTopicGeneration() {
+    this.discardTopicSummary();
+    this.isGeneratingFromTopic.set(true);
+  }
+
+  cancelTopicGeneration() {
+    this.isGeneratingFromTopic.set(false);
+    this.discardTopicSummary();
+  }
+
+  generateSummaryFromTopic() {
+    if (!this.topicInput().trim()) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Atenção',
+        detail: 'Por favor, informe um tópico.',
+      });
+      return;
+    }
+    this.aiTopicLoading.set(true);
+    this.hasGenerated.set(true);
+    this.aiTopicSummaryText.set('');
+    this.selectedTags.set([]);
+
+    this.summaryService.generateSummaryFromTopic(this.topicInput()).subscribe({
+      next: (res) => {
+        this.aiTopicSummaryText.set(res.content);
+        this.selectedTags.set(res.suggestedTags || []);
+        this.aiTopicLoading.set(false);
+      },
+      error: (err) => {
+        console.error(err);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Erro',
+          detail: 'Não foi possível gerar o resumo para o tópico informado.',
+        });
+        this.aiTopicLoading.set(false);
+        this.hasGenerated.set(false);
+      },
+    });
+  }
+
+  saveTopicSummary() {
+    if (!this.aiTopicSummaryText().trim()) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Atenção',
+        detail: 'O conteúdo do resumo não pode estar vazio.',
+      });
+      return;
+    }
+    this.processTagsAndSave(this.aiTopicSummaryText(), 'TOPIC');
+  }
+
+  discardTopicSummary() {
+    this.topicInput.set('');
+    this.aiTopicSummaryText.set('');
+    this.selectedTags.set([]);
+    this.aiTopicLoading.set(false);
+    this.hasGenerated.set(false);
   }
 
 }
